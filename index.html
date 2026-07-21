@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uniform Circular Motion — Simulation &amp; Worksheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#20242B;
+    --panel-2:#333A47;
+    --panel-border:#454F62;
+    --paper:#F3EEE3;
+    --paper-line:#E4DCC8;
+    --paper-ink:#2B2620;
+    --paper-soft:#6B6153;
+    --amber:#E4A62A;
+    --amber-dim:#B98424;
+    --objA:#4C8FBD;
+    --objB:#8FAE52;
+    --err:#B0453B;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Source Serif 4', Georgia, serif;
+    --font-mono:'JetBrains Mono', 'Courier New', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--paper); color:var(--paper-ink); font-family:var(--font-body); line-height:1.55; }
+  ::selection{ background:var(--amber); color:var(--ink); }
+  a{ color:var(--objA); }
+  :focus-visible{ outline:3px solid var(--amber); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 20px 140px; }
+
+  header.hero{ padding:56px 20px 28px; max-width:1040px; margin:0 auto; }
+  .eyebrow{ font-family:var(--font-body); font-style:italic; color:var(--paper-soft); font-size:0.95rem; margin:0 0 10px; }
+  h1{ font-family:var(--font-display); font-weight:700; font-size:clamp(2rem,5vw,3rem); line-height:1.08; margin:0 0 14px; }
+  h1 .accent{ color:var(--amber-dim); }
+  .hero-sub{ font-size:1.08rem; max-width:640px; color:#3a352c; margin:0 0 22px; }
+  .hero-rule{ height:2px; background:linear-gradient(90deg,var(--amber) 0 90px, var(--paper-line) 90px 100%); }
+  .hero-meta{ display:flex; gap:28px; flex-wrap:wrap; margin-top:20px; font-family:var(--font-mono); font-size:0.82rem; color:var(--paper-soft); text-transform:uppercase; letter-spacing:0.04em; }
+  .hero-meta strong{ color:var(--paper-ink); display:block; font-size:0.72rem; font-weight:500; }
+
+  .instrument{ background:var(--ink); border-radius:20px; padding:28px; box-shadow:0 20px 40px -20px rgba(32,36,43,0.55), 0 0 0 1px var(--panel-border); color:#E9E6DD; margin:36px 0 48px; }
+  .instrument-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  .instrument-head h2{ font-family:var(--font-display); font-size:1.15rem; margin:0; color:#F1EEE5; }
+  .instrument-head .tag{ font-family:var(--font-mono); font-size:0.72rem; color:var(--amber); border:1px solid var(--amber-dim); padding:3px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:0.06em; }
+  .instrument-grid{ display:grid; grid-template-columns:400px 1fr; gap:26px; }
+  @media (max-width:840px){ .instrument-grid{ grid-template-columns:1fr; } }
+
+  .dial-col{ display:flex; flex-direction:column; gap:10px; align-items:center; }
+  canvas#dial{ width:100%; max-width:400px; aspect-ratio:1/1; background:radial-gradient(circle at 50% 45%, #2B3140 0%, #1D212A 78%); border-radius:50%; box-shadow:inset 0 0 0 1px var(--panel-border), inset 0 0 26px rgba(0,0,0,0.45); cursor:grab; touch-action:none; }
+  canvas#dial.dragging{ cursor:grabbing; }
+  .drag-hint{ font-family:var(--font-mono); font-size:0.72rem; color:#8B8A80; text-align:center; }
+  canvas#graph{ width:100%; height:150px; background:#1D212A; border-radius:12px; box-shadow:inset 0 0 0 1px var(--panel-border); }
+  .graph-row{ width:100%; margin-top:8px; }
+  .graph-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .graph-head label{ font-family:var(--font-mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:#B7B2A6; }
+  select#graphVar{ background:var(--panel-2); color:#EDEAE1; border:1px solid var(--panel-border); border-radius:7px; font-family:var(--font-mono); font-size:0.78rem; padding:5px 8px; }
+
+  .control-col{ display:flex; flex-direction:column; gap:18px; }
+  .shared-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .readout{ background:#171A21; border:1px solid var(--panel-border); border-radius:10px; padding:10px 12px; }
+  .readout .rlabel{ font-family:var(--font-mono); font-size:0.66rem; color:#8B8A80; text-transform:uppercase; letter-spacing:0.05em; }
+  .readout .rvalue{ font-family:var(--font-mono); font-size:1.1rem; color:var(--amber); font-weight:700; margin-top:2px; }
+  .readout .runit{ font-family:var(--font-mono); font-size:0.68rem; color:#8B8A80; }
+
+  .objects-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .object-card{ background:#171A21; border:1px solid var(--panel-border); border-radius:10px; padding:12px; }
+  .object-card .ohead{ display:flex; align-items:center; gap:8px; margin-bottom:10px; font-family:var(--font-display); font-weight:600; font-size:0.85rem; }
+  .odot{ width:11px; height:11px; border-radius:50%; display:inline-block; }
+  .odot.a{ background:var(--objA); }
+  .odot.b{ background:var(--objB); }
+  .object-card .ogrid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .object-card .otile .rlabel{ font-size:0.62rem; }
+  .object-card .otile .rvalue{ font-size:0.95rem; }
+
+  .slider-block .slabel{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.78rem; color:#D6D2C6; margin-bottom:6px; }
+  .slider-block .slabel b{ color:var(--amber); font-weight:700; }
+  input[type=range]{ -webkit-appearance:none; width:100%; height:5px; border-radius:4px; background:var(--panel-2); outline:none; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--amber); border:2px solid #1D212A; cursor:pointer; margin-top:-1px; }
+  input[type=range]::-moz-range-thumb{ width:16px; height:16px; border-radius:50%; background:var(--amber); border:2px solid #1D212A; cursor:pointer; }
+
+  .toggles{ display:flex; flex-wrap:wrap; gap:14px; font-family:var(--font-mono); font-size:0.78rem; color:#D6D2C6; }
+  .toggles label{ display:flex; align-items:center; gap:7px; cursor:pointer; }
+  .toggles input{ accent-color:var(--amber); width:15px; height:15px; }
+  .legend-note{ font-family:var(--font-mono); font-size:0.68rem; color:#8B8A80; }
+
+  .buttons{ display:flex; gap:10px; }
+  button{ font-family:var(--font-display); font-weight:600; font-size:0.88rem; border-radius:9px; border:none; padding:11px 18px; cursor:pointer; }
+  button.primary{ background:var(--amber); color:#221B0C; }
+  button.primary:hover{ background:#F0B542; }
+  button.ghost{ background:transparent; color:#E9E6DD; border:1px solid var(--panel-border); }
+  button.ghost:hover{ border-color:var(--amber); color:var(--amber); }
+  button:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  .formula-strip{ display:flex; flex-wrap:wrap; gap:18px; font-family:var(--font-mono); font-size:0.74rem; color:#9C978A; border-top:1px solid var(--panel-border); padding-top:14px; margin-top:2px; }
+  .formula-strip span b{ color:#D6D2C6; }
+
+  .worksheet{ margin-top:8px; }
+  .ws-intro{ margin-bottom:30px; }
+  .ws-intro h2{ font-family:var(--font-display); font-size:1.6rem; margin:0 0 10px; }
+  .ws-intro p{ max-width:680px; color:#3a352c; }
+
+  .section{ border-top:1px solid var(--paper-line); padding:28px 0; }
+  .section:first-of-type{ border-top:2px solid var(--paper-ink); }
+  .sec-head{ display:flex; gap:14px; align-items:baseline; margin-bottom:6px; }
+  .sec-letter{ font-family:var(--font-display); font-weight:700; font-size:1.6rem; color:var(--amber-dim); min-width:34px; }
+  .sec-title{ font-family:var(--font-display); font-weight:600; font-size:1.15rem; margin:0; }
+  .sec-body{ padding-left:48px; }
+  .instruction{ background:#EAE3D2; border-left:3px solid var(--amber-dim); border-radius:0 8px 8px 0; padding:12px 16px; font-size:0.94rem; margin:10px 0 18px; color:#3a352c; }
+  .instruction code{ font-family:var(--font-mono); background:#DFD6BF; padding:1px 5px; border-radius:4px; font-size:0.86em; }
+
+  .q{ margin:16px 0; }
+  .q label.qtext{ display:block; font-weight:600; margin-bottom:7px; font-size:0.98rem; }
+
+  input[type=text], input[type=number], textarea, select.answer{
+    width:100%; max-width:560px; background:#FBF8F0; border:1px solid var(--paper-line);
+    border-radius:8px; padding:9px 12px; font-family:var(--font-body); font-size:0.96rem; color:var(--paper-ink);
+  }
+  textarea{ min-height:70px; resize:vertical; }
+  input:focus, textarea:focus, select:focus{ border-color:var(--amber-dim); background:#fff; }
+
+  .id-row{ display:flex; gap:16px; flex-wrap:wrap; }
+  .id-row .q{ flex:1; min-width:220px; }
+
+  .mini-table{ border-collapse:collapse; margin:10px 0 16px; width:100%; max-width:640px; }
+  .mini-table th, .mini-table td{ border:1px solid var(--paper-line); padding:7px 10px; text-align:left; font-size:0.86rem; }
+  .mini-table th{ background:#EAE3D2; font-family:var(--font-mono); font-weight:500; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.03em; }
+  .mini-table input{ width:90px; max-width:90px; }
+
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:20px 28px; }
+  @media (max-width:640px){ .two-col{ grid-template-columns:1fr; } .mini-table{ font-size:0.8rem; } }
+
+  .submit-bar{ position:sticky; bottom:0; left:0; right:0; background:var(--ink); color:#EDEAE1; padding:16px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; box-shadow:0 -10px 24px rgba(0,0,0,0.25); }
+  .submit-bar .wrap-inner{ max-width:1040px; margin:0 auto; width:100%; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .status{ font-family:var(--font-mono); font-size:0.82rem; color:#B7B2A6; }
+  .status.ok{ color:#8FCB8C; }
+  .status.warn{ color:#F0C060; }
+  .status.error{ color:#E68C82; }
+  .submit-bar .spacer{ flex:1; }
+  .link-btn{ background:none; border:none; color:#B7B2A6; font-family:var(--font-mono); font-size:0.78rem; text-decoration:underline; cursor:pointer; padding:0; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="eyebrow">Simulation activity — before the lab experiment</p>
+  <h1>Uniform Circular <span class="accent">Motion</span></h1>
+  <p class="hero-sub">Explore how angular position, angular velocity, linear speed and centripetal acceleration relate to
+  each other for two points on a spinning disc — before you measure them yourself in the lab.</p>
+  <div class="hero-rule"></div>
+  <div class="hero-meta">
+    <div><strong>Topic</strong>Circular Motion — Cambridge A Level</div>
+    <div><strong>Duration</strong>± 40 minutes</div>
+    <div><strong>Tools</strong>This simulation + something to write with</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="instrument" id="simSection">
+    <div class="instrument-head">
+      <h2>Instrument Panel — Two Markers on a Spinning Disc</h2>
+      <span class="tag">Live</span>
+    </div>
+
+    <div class="instrument-grid">
+      <div class="dial-col">
+        <canvas id="dial" width="400" height="400" aria-label="Spinning disc with two draggable markers, A and B"></canvas>
+        <p class="drag-hint">Drag the blue marker (A) or the green marker (B) anywhere on the disc.</p>
+        <div class="graph-row">
+          <div class="graph-head">
+            <label for="graphVar">Graph over time</label>
+            <select id="graphVar">
+              <optgroup label="Object A">
+                <option value="thetaA">Δθ — total angle turned (°)</option>
+                <option value="xA">x — horizontal position (m)</option>
+                <option value="yA">y — vertical position (m)</option>
+              </optgroup>
+              <optgroup label="Object B">
+                <option value="thetaB">Δθ — total angle turned (°)</option>
+                <option value="xB">x — horizontal position (m)</option>
+                <option value="yB">y — vertical position (m)</option>
+              </optgroup>
+            </select>
+          </div>
+          <canvas id="graph" width="400" height="150" aria-label="Selected quantity plotted against time"></canvas>
+        </div>
+      </div>
+
+      <div class="control-col">
+        <div class="shared-row">
+          <div class="readout"><div class="rlabel">Δθ total (shared)</div><div class="rvalue" id="rDeltaShared">0.0</div><div class="runit">degrees</div></div>
+          <div class="readout"><div class="rlabel">period T (shared)</div><div class="rvalue" id="rPeriodShared">–</div><div class="runit">seconds</div></div>
+          <div class="readout"><div class="rlabel">time t</div><div class="rvalue" id="rTShared">0.0</div><div class="runit">seconds</div></div>
+        </div>
+
+        <div class="objects-row">
+          <div class="object-card">
+            <div class="ohead"><span class="odot a"></span> Object A</div>
+            <div class="ogrid">
+              <div class="readout otile"><div class="rlabel">r</div><div class="rvalue" id="rA_r">–</div><div class="runit">m</div></div>
+              <div class="readout otile"><div class="rlabel">v</div><div class="rvalue" id="rA_v">–</div><div class="runit">m/s</div></div>
+              <div class="readout otile"><div class="rlabel">a</div><div class="rvalue" id="rA_a">–</div><div class="runit">m/s²</div></div>
+            </div>
+          </div>
+          <div class="object-card">
+            <div class="ohead"><span class="odot b"></span> Object B</div>
+            <div class="ogrid">
+              <div class="readout otile"><div class="rlabel">r</div><div class="rvalue" id="rB_r">–</div><div class="runit">m</div></div>
+              <div class="readout otile"><div class="rlabel">v</div><div class="rvalue" id="rB_v">–</div><div class="runit">m/s</div></div>
+              <div class="readout otile"><div class="rlabel">a</div><div class="rvalue" id="rB_a">–</div><div class="runit">m/s²</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slider-block">
+          <div class="slabel"><span>Angular velocity, ω <span style="color:#8B8A80">(+ = counter-clockwise)</span></span><b id="wLabel">1.5 rad/s</b></div>
+          <input type="range" id="wSlider" min="-3" max="3" step="0.1" value="1.5">
+        </div>
+
+        <div class="toggles">
+          <label><input type="checkbox" id="showV" checked> Show velocity vectors (solid)</label>
+          <label><input type="checkbox" id="showA" checked> Show acceleration vectors (dashed)</label>
+        </div>
+        <p class="legend-note">Marker colour shows which object a vector belongs to. Solid arrow = velocity, dashed arrow = acceleration.</p>
+
+        <div class="buttons">
+          <button class="primary" id="playBtn">▶ Start</button>
+          <button class="ghost" id="resetBtn">↺ Reset</button>
+        </div>
+
+        <div class="formula-strip">
+          <span><b>T</b> = 2π / ω</span>
+          <span><b>v</b> = ω r</span>
+          <span><b>a</b> = ω² r = v² / r</span>
+          <span><b>Δθ</b> = ω t</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="worksheet">
+    <div class="ws-intro">
+      <h2>Exploration Worksheet</h2>
+      <p>Fill this in while running the simulation above. Work through parts A to F in order — some parts ask you to
+      <em>predict first</em>, before running the simulation. Your answers are saved automatically once you press
+      <strong>Submit Answers</strong> at the bottom of the page.</p>
+    </div>
+
+    <form id="worksheetForm">
+
+      <div class="section" style="padding-top:0;">
+        <div class="sec-body" style="padding-left:0;">
+          <div class="id-row">
+            <div class="q"><label class="qtext" for="studentName">Name</label><input type="text" id="studentName" required autocomplete="name"></div>
+            <div class="q"><label class="qtext" for="studentClass">Class</label><input type="text" id="studentClass" required placeholder="e.g. 12A"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head"><span class="sec-letter">A</span><h3 class="sec-title">Initial Prediction</h3></div>
+        <div class="sec-body">
+          <div class="instruction">Don't run the simulation yet. Answer based on what you already know from theory.</div>
+          <div class="q">
+            <label class="qtext" for="q1">If Object B sits at a larger radius than Object A while both spin with the same ω, which one will have the greater linear speed v? Explain your reasoning using the relevant equation.</label>
+            <textarea id="q1" required></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head"><span class="sec-letter">B</span><h3 class="sec-title">Angular Displacement and Period</h3></div>
+        <div class="sec-body">
+          <div class="instruction">Set <code>ω = 1.5 rad/s</code>. Press <strong>Start</strong>, let it run for exactly 2 seconds, then press <strong>Start</strong> again to pause.</div>
+          <div class="two-col">
+            <div class="q"><label class="qtext" for="q2Calc">Calculate Δθ after t = 2 s using Δθ = ωt (in degrees).</label><input type="number" step="any" id="q2Calc" required></div>
+            <div class="q"><label class="qtext" for="q2Sim">Read the "Δθ total" value on the panel at t ≈ 2 s.</label><input type="number" step="any" id="q2Sim" required></div>
+          </div>
+          <div class="two-col">
+            <div class="q"><label class="qtext" for="q3Calc">Calculate the period T using T = 2π / ω (in seconds).</label><input type="number" step="any" id="q3Calc" required></div>
+            <div class="q"><label class="qtext" for="q3Sim">From the simulation: how long does it take for the disc to complete one full turn?</label><input type="number" step="any" id="q3Sim" required></div>
+          </div>
+          <div class="q">
+            <label class="qtext" for="q3Bonus">Δθ, T and t are shared by both objects. Do Object A and Object B point in the same compass direction at every moment? Why might their instantaneous position differ even though Δθ is identical for both?</label>
+            <textarea id="q3Bonus" required></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head"><span class="sec-letter">C</span><h3 class="sec-title">Effect of Radius on Linear Speed</h3></div>
+        <div class="sec-body">
+          <div class="instruction">Drag Object A close to the centre and Object B further out. Keep ω constant. Read v for both markers.
+          Then drag them to two more different radius pairs and repeat, for 3 trials total.</div>
+          <table class="mini-table">
+            <thead><tr><th>Trial</th><th>r<sub>A</sub> (m)</th><th>v<sub>A</sub> (m/s)</th><th>r<sub>B</sub> (m)</th><th>v<sub>B</sub> (m/s)</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><input type="number" step="any" id="q4_t1_rA" required></td><td><input type="number" step="any" id="q4_t1_vA" required></td><td><input type="number" step="any" id="q4_t1_rB" required></td><td><input type="number" step="any" id="q4_t1_vB" required></td></tr>
+              <tr><td>2</td><td><input type="number" step="any" id="q4_t2_rA" required></td><td><input type="number" step="any" id="q4_t2_vA" required></td><td><input type="number" step="any" id="q4_t2_rB" required></td><td><input type="number" step="any" id="q4_t2_vB" required></td></tr>
+              <tr><td>3</td><td><input type="number" step="any" id="q4_t3_rA" required></td><td><input type="number" step="any" id="q4_t3_vA" required></td><td><input type="number" step="any" id="q4_t3_rB" required></td><td><input type="number" step="any" id="q4_t3_vB" required></td></tr>
+            </tbody>
+          </table>
+          <div class="q">
+            <label class="qtext" for="q4Relation">Based on your data, how are v and r related (at constant ω)?</label>
+            <select id="q4Relation" class="answer" required>
+              <option value="">— choose —</option>
+              <option>Directly proportional (linear)</option>
+              <option>Quadratic</option>
+              <option>Inversely proportional</option>
+              <option>No relationship</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head"><span class="sec-letter">D</span><h3 class="sec-title">Centripetal Acceleration</h3></div>
+        <div class="sec-body">
+          <div class="instruction">Turn on the acceleration vectors (dashed arrows). Watch which direction they point as the disc spins and as you reposition the markers.</div>
+          <div class="q">
+            <label class="qtext" for="q5Direction">Which direction do the acceleration vectors always point?</label>
+            <select id="q5Direction" class="answer" required>
+              <option value="">— choose —</option>
+              <option>Always toward the centre of the disc</option>
+              <option>Always outward, away from the centre</option>
+              <option>In the same direction as the velocity vector</option>
+              <option>Opposite to the velocity vector</option>
+            </select>
+          </div>
+          <div class="instruction">Keep the marker positions fixed. Change ω to 1, 2 and 3 rad/s and record a for both objects each time.</div>
+          <table class="mini-table">
+            <thead><tr><th>ω (rad/s)</th><th>a<sub>A</sub> (m/s²)</th><th>a<sub>B</sub> (m/s²)</th></tr></thead>
+            <tbody>
+              <tr><td>1.0</td><td><input type="number" step="any" id="q6_w1_aA" required></td><td><input type="number" step="any" id="q6_w1_aB" required></td></tr>
+              <tr><td>2.0</td><td><input type="number" step="any" id="q6_w2_aA" required></td><td><input type="number" step="any" id="q6_w2_aB" required></td></tr>
+              <tr><td>3.0</td><td><input type="number" step="any" id="q6_w3_aA" required></td><td><input type="number" step="any" id="q6_w3_aB" required></td></tr>
+            </tbody>
+          </table>
+          <div class="q">
+            <label class="qtext" for="q6Relation">How are a and ω related (at constant r)?</label>
+            <select id="q6Relation" class="answer" required>
+              <option value="">— choose —</option>
+              <option>Directly proportional (linear)</option>
+              <option>Quadratic (a ∝ ω²)</option>
+              <option>Inversely proportional</option>
+              <option>No relationship</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head"><span class="sec-letter">E</span><h3 class="sec-title">Reading the Graphs</h3></div>
+        <div class="sec-body">
+          <div class="instruction">Reset the simulation, select the "Δθ — Object A" graph, then run it for a few seconds with ω constant.</div>
+          <div class="q">
+            <label class="qtext" for="q7Shape">What shape is the Δθ-t graph?</label>
+            <select id="q7Shape" class="answer" required>
+              <option value="">— choose —</option>
+              <option>A straight line rising steadily (linear)</option>
+              <option>A sinusoidal (wave-like) curve</option>
+              <option>Flat (constant)</option>
+              <option>A curve that gets steeper and steeper (exponential)</option>
+            </select>
+          </div>
+          <div class="q">
+            <label class="qtext" for="q8Desc">Now compare the x-t and y-t graphs for Object A. Describe their shape and explain why it differs from the Δθ-t graph.</label>
+            <textarea id="q8Desc" required></textarea>
+          </div>
+          <div class="q">
+            <label class="qtext" for="q8b">Switch the graph to Object B's x-t curve, keeping the same time window. Compare it with Object A's x-t curve — what stays the same, what's different, and why?</label>
+            <textarea id="q8b" required></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head"><span class="sec-letter">F</span><h3 class="sec-title">Application and Reflection</h3></div>
+        <div class="sec-body">
+          <div class="q">
+            <label class="qtext" for="q9App">Give one real-life example of circular motion, and explain what provides the centripetal force in that example.</label>
+            <textarea id="q9App" required></textarea>
+          </div>
+          <div class="q">
+            <label class="qtext" for="q10Reflect">After this exploration, what do you think still needs to be verified directly through the lab experiment?</label>
+            <textarea id="q10Reflect" required></textarea>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </section>
+</div>
+
+<div class="submit-bar">
+  <div class="wrap-inner">
+    <button class="primary" id="submitBtn" type="button">Submit Answers</button>
+    <button class="link-btn" id="csvBtn" type="button">Download backup (.csv)</button>
+    <span class="status" id="submitStatus"></span>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // =========================================================
+  // TEACHER CONFIG — replace the URL below with your deployed
+  // Google Apps Script Web App URL (see the setup guide). While
+  // it still reads "PASTE_URL", answers are downloaded as CSV
+  // instead of being submitted.
+  // =========================================================
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDiX1phKk-d6vuOxxVJDj2c5_00qX4gxHnNRUYZp4cgPg0lZXfqQ9tGQ7QkdcmTyZe/exec";
+
+  const state = { running:false, t:0, deltaTheta:0, lastTime:null };
+  const RMIN = 0.2, RMAX = 4.0;
+  const objA = { r:1.2, theta: Math.PI/2 };
+  const objB = { r:3.0, theta: Math.PI*1.5 };
+  const DEFAULT_A = { r:1.2, theta: Math.PI/2 };
+  const DEFAULT_B = { r:3.0, theta: Math.PI*1.5 };
+
+  let sampleBuf = [];
+  let lastSampleT = -1;
+  let dragTarget = null;
+
+  const wSlider = document.getElementById('wSlider');
+  const wLabel  = document.getElementById('wLabel');
+  const showV   = document.getElementById('showV');
+  const showA   = document.getElementById('showA');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn= document.getElementById('resetBtn');
+  const graphVar= document.getElementById('graphVar');
+
+  function getW(){ return parseFloat(wSlider.value); }
+  wSlider.addEventListener('input', ()=>{ wLabel.textContent = getW().toFixed(1) + ' rad/s'; });
+
+  playBtn.addEventListener('click', ()=>{
+    state.running = !state.running;
+    playBtn.textContent = state.running ? '⏸ Pause' : '▶ Start';
+    if(!state.running) state.lastTime = null;
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    state.running = false; state.t = 0; state.deltaTheta = 0; state.lastTime = null;
+    objA.r = DEFAULT_A.r; objA.theta = DEFAULT_A.theta;
+    objB.r = DEFAULT_B.r; objB.theta = DEFAULT_B.theta;
+    sampleBuf = []; lastSampleT = -1;
+    playBtn.textContent = '▶ Start';
+  });
+
+  // ---------------- Dial canvas ----------------
+  const dialCv = document.getElementById('dial');
+  const dctx = dialCv.getContext('2d');
+  const CX = 200, CY = 200, DIAL_R = 160, MAX_R = 4;
+  const SCALE = DIAL_R / MAX_R;
+
+  function toCanvas(xm, ym){ return { x: CX + xm*SCALE, y: CY - ym*SCALE }; }
+  function objCanvasPos(obj){ return toCanvas(obj.r*Math.cos(obj.theta), obj.r*Math.sin(obj.theta)); }
+
+  function drawArrow(ctx, x0,y0,x1,y1,color,lw,dashed){
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw||3;
+    if(dashed) ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+    ctx.setLineDash([]);
+    const ang = Math.atan2(y1-y0, x1-x0);
+    const hs = 8;
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1 - hs*Math.cos(ang-0.4), y1 - hs*Math.sin(ang-0.4));
+    ctx.lineTo(x1 - hs*Math.cos(ang+0.4), y1 - hs*Math.sin(ang+0.4));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawMarker(obj, color, label, isDragging){
+    const r = obj.r, theta = obj.theta;
+    const pos = toCanvas(r*Math.cos(theta), r*Math.sin(theta));
+
+    dctx.strokeStyle = '#525C70'; dctx.setLineDash([4,4]); dctx.lineWidth = 1.4;
+    dctx.beginPath(); dctx.moveTo(CX,CY); dctx.lineTo(pos.x,pos.y); dctx.stroke();
+    dctx.setLineDash([]);
+
+    const w = getW();
+    if(showV.checked){
+      const vx = -r*w*Math.sin(theta), vy = r*w*Math.cos(theta);
+      const vScale = 70/12;
+      const end = toCanvas(r*Math.cos(theta) + vx*vScale/SCALE, r*Math.sin(theta) + vy*vScale/SCALE);
+      drawArrow(dctx, pos.x, pos.y, end.x, end.y, color, 3, false);
+    }
+    if(showA.checked){
+      const a = w*w*r;
+      const aScale = 70/36;
+      const dirx = -Math.cos(theta), diry = -Math.sin(theta);
+      const end = toCanvas(r*Math.cos(theta) + dirx*a*aScale/SCALE, r*Math.sin(theta) + diry*a*aScale/SCALE);
+      drawArrow(dctx, pos.x, pos.y, end.x, end.y, color, 2.6, true);
+    }
+
+    if(isDragging){
+      dctx.beginPath(); dctx.arc(pos.x,pos.y,14,0,Math.PI*2);
+      dctx.strokeStyle = '#EDEAE1'; dctx.lineWidth = 1.4; dctx.stroke();
+    }
+    dctx.beginPath(); dctx.arc(pos.x,pos.y,9,0,Math.PI*2);
+    dctx.fillStyle = color; dctx.fill(); dctx.strokeStyle='#EDEAE1'; dctx.lineWidth=2; dctx.stroke();
+    dctx.fillStyle = '#0E1116'; dctx.font = 'bold 10px "JetBrains Mono", monospace';
+    dctx.textAlign='center'; dctx.textBaseline='middle'; dctx.fillText(label, pos.x, pos.y);
+  }
+
+  function drawDial(){
+    dctx.clearRect(0,0,400,400);
+    for(let deg=0; deg<360; deg+=10){
+      const rad = deg*Math.PI/180;
+      const major = deg % 30 === 0;
+      const r0 = DIAL_R - (major?14:8), r1 = DIAL_R;
+      const x0 = CX + r0*Math.cos(rad), y0 = CY - r0*Math.sin(rad);
+      const x1 = CX + r1*Math.cos(rad), y1 = CY - r1*Math.sin(rad);
+      dctx.strokeStyle = major ? '#5B6577' : '#39414F';
+      dctx.lineWidth = major ? 1.6 : 1;
+      dctx.beginPath(); dctx.moveTo(x0,y0); dctx.lineTo(x1,y1); dctx.stroke();
+      if(major){
+        const lx = CX + (DIAL_R+16)*Math.cos(rad), ly = CY - (DIAL_R+16)*Math.sin(rad);
+        dctx.fillStyle = '#7D8496'; dctx.font = '11px "JetBrains Mono", monospace';
+        dctx.textAlign = 'center'; dctx.textBaseline = 'middle';
+        dctx.fillText(deg+'°', lx, ly);
+      }
+    }
+    dctx.beginPath(); dctx.arc(CX,CY,DIAL_R,0,Math.PI*2); dctx.strokeStyle='#4A5468'; dctx.lineWidth=1.5; dctx.stroke();
+    dctx.fillStyle = '#5B6577'; dctx.beginPath(); dctx.arc(CX,CY,3,0,Math.PI*2); dctx.fill();
+
+    drawMarker(objA, getComputedColor('--objA'), 'A', dragTarget==='A');
+    drawMarker(objB, getComputedColor('--objB'), 'B', dragTarget==='B');
+  }
+
+  let cachedColors = {};
+  function getComputedColor(varName){
+    if(cachedColors[varName]) return cachedColors[varName];
+    const c = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    cachedColors[varName] = c || (varName==='--objA' ? '#4C8FBD' : '#8FAE52');
+    return cachedColors[varName];
+  }
+
+  // ---------------- Dragging ----------------
+  function pointerPos(e){
+    const rect = dialCv.getBoundingClientRect();
+    const sx = dialCv.width/rect.width, sy = dialCv.height/rect.height;
+    return { x:(e.clientX-rect.left)*sx, y:(e.clientY-rect.top)*sy };
+  }
+
+  dialCv.addEventListener('pointerdown', (e)=>{
+    const p = pointerPos(e);
+    const pa = objCanvasPos(objA), pb = objCanvasPos(objB);
+    const da = Math.hypot(p.x-pa.x, p.y-pa.y);
+    const db = Math.hypot(p.x-pb.x, p.y-pb.y);
+    const threshold = 26;
+    if(da<threshold && da<=db) dragTarget = 'A';
+    else if(db<threshold) dragTarget = 'B';
+    else dragTarget = null;
+    if(dragTarget){
+      dialCv.setPointerCapture(e.pointerId);
+      dialCv.classList.add('dragging');
+    }
+  });
+
+  dialCv.addEventListener('pointermove', (e)=>{
+    if(!dragTarget) return;
+    const p = pointerPos(e);
+    const xm = (p.x-CX)/SCALE, ym = (CY-p.y)/SCALE;
+    let r = Math.hypot(xm,ym);
+    r = Math.max(RMIN, Math.min(RMAX, r));
+    const theta = Math.atan2(ym,xm);
+    const obj = dragTarget==='A' ? objA : objB;
+    obj.r = r; obj.theta = theta;
+  });
+
+  function endDrag(){
+    if(dragTarget){ dialCv.classList.remove('dragging'); }
+    dragTarget = null;
+  }
+  dialCv.addEventListener('pointerup', endDrag);
+  dialCv.addEventListener('pointercancel', endDrag);
+
+  // ---------------- Graph canvas ----------------
+  const gCv = document.getElementById('graph');
+  const gctx = gCv.getContext('2d');
+  const WINDOW_T = 15;
+
+  function seriesKey(key){
+    const obj = key.endsWith('A') ? 'A' : 'B';
+    const quantity = key.slice(0,-1);
+    return { obj, quantity };
+  }
+
+  function drawGraph(){
+    gctx.clearRect(0,0,400,150);
+    gctx.fillStyle = '#171A21'; gctx.fillRect(0,0,400,150);
+    const { obj, quantity } = seriesKey(graphVar.value);
+    const t = state.t;
+    const tMin = Math.max(0, t-WINDOW_T), tMax = Math.max(WINDOW_T, t);
+    const visible = sampleBuf.filter(s => s.t >= tMin && s.t <= tMax);
+
+    gctx.strokeStyle = '#39414F'; gctx.lineWidth = 1;
+    gctx.beginPath(); gctx.moveTo(36,10); gctx.lineTo(36,130); gctx.lineTo(392,130); gctx.stroke();
+    gctx.fillStyle = '#7D8496'; gctx.font = '10px "JetBrains Mono", monospace';
+    gctx.textAlign='left'; gctx.fillText('t (s)', 370, 143);
+
+    if(visible.length < 2) return;
+
+    function pick(s){
+      if(quantity==='theta') return obj==='A' ? s.thetaA : s.thetaB;
+      if(quantity==='x') return obj==='A' ? s.xA : s.xB;
+      return obj==='A' ? s.yA : s.yB;
+    }
+
+    let vals = visible.map(pick);
+    let vMin = Math.min(...vals), vMax = Math.max(...vals);
+    if(vMax - vMin < 1e-6){ vMax += 1; vMin -= 1; }
+    const pad = (vMax-vMin)*0.1; vMin -= pad; vMax += pad;
+
+    function px(tv){ return 36 + (tv - tMin) / (tMax - tMin) * (392-36); }
+    function py(v){ return 130 - (v - vMin) / (vMax - vMin) * (130-10); }
+
+    gctx.strokeStyle = getComputedColor(obj==='A' ? '--objA' : '--objB');
+    gctx.lineWidth = 2; gctx.beginPath();
+    visible.forEach((s,i)=>{
+      const x = px(s.t), y = py(pick(s));
+      if(i===0) gctx.moveTo(x,y); else gctx.lineTo(x,y);
+    });
+    gctx.stroke();
+
+    gctx.fillStyle = '#7D8496'; gctx.textAlign='right';
+    gctx.fillText(vMax.toFixed(0), 32, 14);
+    gctx.fillText(vMin.toFixed(0), 32, 130);
+  }
+
+  // ---------------- Readouts ----------------
+  function updateReadouts(){
+    const w = getW();
+    const period = w !== 0 ? (2*Math.PI/Math.abs(w)) : null;
+
+    document.getElementById('rDeltaShared').textContent = (state.deltaTheta*180/Math.PI).toFixed(1);
+    document.getElementById('rPeriodShared').textContent = period ? period.toFixed(2) : '–';
+    document.getElementById('rTShared').textContent = state.t.toFixed(1);
+
+    const vA = Math.abs(w)*objA.r, aA = w*w*objA.r;
+    const vB = Math.abs(w)*objB.r, aB = w*w*objB.r;
+    document.getElementById('rA_r').textContent = objA.r.toFixed(2);
+    document.getElementById('rA_v').textContent = vA.toFixed(2);
+    document.getElementById('rA_a').textContent = aA.toFixed(2);
+    document.getElementById('rB_r').textContent = objB.r.toFixed(2);
+    document.getElementById('rB_v').textContent = vB.toFixed(2);
+    document.getElementById('rB_a').textContent = aB.toFixed(2);
+  }
+
+  // ---------------- Main loop ----------------
+  function tick(now){
+    if(state.running){
+      if(state.lastTime==null) state.lastTime = now;
+      const dt = (now - state.lastTime)/1000;
+      state.lastTime = now;
+      const dtheta = getW()*dt;
+      state.t += dt;
+      state.deltaTheta += dtheta;
+      objA.theta += dtheta;
+      objB.theta += dtheta;
+
+      if(state.t - lastSampleT >= 0.05){
+        lastSampleT = state.t;
+        sampleBuf.push({
+          t: state.t,
+          thetaA: objA.theta*180/Math.PI, xA: objA.r*Math.cos(objA.theta), yA: objA.r*Math.sin(objA.theta),
+          thetaB: objB.theta*180/Math.PI, xB: objB.r*Math.cos(objB.theta), yB: objB.r*Math.sin(objB.theta)
+        });
+        if(sampleBuf.length > 2000) sampleBuf.shift();
+      }
+    } else {
+      state.lastTime = null;
+    }
+    drawDial();
+    drawGraph();
+    updateReadouts();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // =========================================================
+  // SUBMISSION
+  // =========================================================
+  function val(id){ return document.getElementById(id).value.trim(); }
+
+  function collectPayload(){
+    return {
+      timestamp: new Date().toISOString(),
+      name: val('studentName'),
+      class: val('studentClass'),
+      q1_prediction: val('q1'),
+      q2_deltaTheta_calculated_deg: val('q2Calc'),
+      q2_deltaTheta_simulated_deg: val('q2Sim'),
+      q3_period_calculated_s: val('q3Calc'),
+      q3_period_simulated_s: val('q3Sim'),
+      q3_bonus_direction_note: val('q3Bonus'),
+      q4_t1_rA: val('q4_t1_rA'), q4_t1_vA: val('q4_t1_vA'), q4_t1_rB: val('q4_t1_rB'), q4_t1_vB: val('q4_t1_vB'),
+      q4_t2_rA: val('q4_t2_rA'), q4_t2_vA: val('q4_t2_vA'), q4_t2_rB: val('q4_t2_rB'), q4_t2_vB: val('q4_t2_vB'),
+      q4_t3_rA: val('q4_t3_rA'), q4_t3_vA: val('q4_t3_vA'), q4_t3_rB: val('q4_t3_rB'), q4_t3_vB: val('q4_t3_vB'),
+      q4_relation_v_r: val('q4Relation'),
+      q5_acceleration_direction: val('q5Direction'),
+      q6_w1_aA: val('q6_w1_aA'), q6_w1_aB: val('q6_w1_aB'),
+      q6_w2_aA: val('q6_w2_aA'), q6_w2_aB: val('q6_w2_aB'),
+      q6_w3_aA: val('q6_w3_aA'), q6_w3_aB: val('q6_w3_aB'),
+      q6_relation_a_omega: val('q6Relation'),
+      q7_theta_graph_shape: val('q7Shape'),
+      q8_xy_graph_description: val('q8Desc'),
+      q8b_objectA_vs_B_comparison: val('q8b'),
+      q9_real_world_application: val('q9App'),
+      q10_reflection: val('q10Reflect')
+    };
+  }
+
+  function downloadCSV(payload){
+    const headers = Object.keys(payload);
+    const row = headers.map(h => '"' + String(payload[h]).replace(/"/g,'""') + '"');
+    const csv = headers.join(',') + '\n' + row.join(',');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'answers-' + (payload.name || 'student').replace(/\s+/g,'_') + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const form = document.getElementById('worksheetForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('submitStatus');
+
+  submitBtn.addEventListener('click', async ()=>{
+    if(!form.reportValidity()) return;
+    const payload = collectPayload();
+
+    if(GOOGLE_SCRIPT_URL.indexOf('PASTE_URL') !== -1){
+      statusEl.textContent = 'Google Sheets URL not configured yet — answers downloaded as CSV.';
+      statusEl.className = 'status warn';
+      downloadCSV(payload);
+      return;
+    }
+
+    statusEl.textContent = 'Sending…';
+    statusEl.className = 'status';
+    submitBtn.disabled = true;
+    try{
+      await fetch(GOOGLE_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
+      statusEl.textContent = '✓ Answers submitted. Thank you!';
+      statusEl.className = 'status ok';
+    }catch(err){
+      statusEl.textContent = 'Submission failed — try again or download the CSV backup.';
+      statusEl.className = 'status error';
+      submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('csvBtn').addEventListener('click', ()=>{
+    downloadCSV(collectPayload());
+  });
+
+})();
+</script>
+</body>
+</html>
